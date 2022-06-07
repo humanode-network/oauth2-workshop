@@ -36,6 +36,21 @@ app.get('/login', async (req, res) => {
   // Set up codeVerifier and save it as a cookie for later use.
   const codeVerifier = openid.generators.codeVerifier(64);
   res.cookie('codeVerifier', codeVerifier, { maxAge: 360000 });
+
+  // Set up codeChallenge for login flow.
+  const codeChallenge = openid.generators.codeChallenge(codeVerifier);
+
+  // Get the redirect URI.
+  const redirectUri = client.authorizationUrl({
+    scope: 'openid',
+    code_challenge: codeChallenge,
+    code_challenge_method: 'S256',
+    state: 'some-state'
+  });
+
+  // Redirect end-user to Humanode login page.
+  // After the login flow user will be redirected to our callback URI.
+  res.redirect(redirectUri);
 });
 
 app.listen(3000, () => {
