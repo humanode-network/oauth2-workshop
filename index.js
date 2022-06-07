@@ -8,7 +8,7 @@ app.set('view engine', 'jade');
 app.use(cookieParser());
 
 app.get('/', (req, res) => {
-  const name = 'guest';
+  const name = req.cookies.jwtSet ? 'user' : 'guest';
 
   res.render('index', {
     name
