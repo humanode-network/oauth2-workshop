@@ -53,6 +53,22 @@ app.get('/login', async (req, res) => {
   res.redirect(redirectUri);
 });
 
+app.get('/callback', async (req, res) => {
+  // Get codeVerifier and client.
+  const { codeVerifier } = req.cookies;
+  const client = res.app.get('client');
+
+  // Get callback params with auth code.
+  const params = client.callbackParams(req);
+
+  // Exchange auth code for JWT token.
+  const tokenSet = await client.callback('http://localhost:3000/callback', params, { state: 'some-state', code_verifier: codeVerifier });
+  // Save JWT.
+  res.cookie('jwtSet', tokenSet, { maxAge: 360000 });
+  // Redirect end-user to root route.
+  res.redirect('/');
+});
+
 app.listen(3000, () => {
   console.log('App listening on port 3000!');
 });
