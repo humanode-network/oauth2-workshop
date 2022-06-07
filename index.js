@@ -15,6 +15,29 @@ app.get('/', (req, res) => {
   });
 });
 
+app.get('/secret', (req, res) => {
+  // Get JWT.
+  const jwtSet = req.cookies.jwtSet
+    ? new openid.TokenSet(req.cookies.jwtSet) : undefined;
+
+  // Make a little inspection on JWT claims
+  // and render secret page if claims are correct,
+  // redirect back on root otherwise.
+  if (
+    // Check if JWT is present.
+    jwtSet
+      // Check if JWT claims the correct client-id.
+      && jwtSet.claims().aud.includes('hackathon-participant')
+      // Check if JWT claims the correct issuer.
+      && jwtSet.claims().iss === 'https://auth.staging.oauth2.humanode.io/'
+  ) {
+    res.render('secret');
+  }
+  else {
+    res.redirect('/');
+  }
+});
+
 app.get('/login', async (req, res) => {
   // Humanode Issuer a.k.a. Identity provider.
   const humanodeIssuer = await openid.Issuer.discover(
