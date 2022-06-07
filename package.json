@@ -5,7 +5,8 @@
     "main": "index.js",
     "dependencies": {
         "express": "^4.18.1",
-        "jade": "^1.11.0"
+        "jade": "^1.11.0",
+        "openid-client": "^5.1.6"
     },
     "devDependencies": {
         "eslint": "^8.17.0",
