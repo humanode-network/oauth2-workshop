@@ -7,6 +7,28 @@ const app = express();
 app.set('view engine', 'jade');
 app.use(cookieParser());
 
+app.use(async (req, res, next) => {
+  if (res.app.get('client') === undefined) {
+    // Humanode Issuer a.k.a. Identity provider.
+    const humanodeIssuer = await openid.Issuer.discover(
+      'https://auth.staging.oauth2.humanode.io'
+    );
+
+    // Set up the common hackathon client.
+    const client = new humanodeIssuer.Client({
+      client_id: 'hackathon-participant',
+      client_secret: 'q4_GkveX47i3M9wYXSkU5CKn3h',
+      redirect_uris: ['http://localhost:3000/callback'],
+      response_types: ['code'],
+      token_endpoint_auth_method: 'client_secret_post'
+    });
+
+    // Save client configuration for later use.
+    res.app.set('client', client);
+  }
+  next();
+});
+
 app.get('/', (req, res) => {
   const name = req.cookies.jwtSet ? 'user' : 'guest';
 
@@ -39,22 +61,8 @@ app.get('/secret', (req, res) => {
 });
 
 app.get('/login', async (req, res) => {
-  // Humanode Issuer a.k.a. Identity provider.
-  const humanodeIssuer = await openid.Issuer.discover(
-    'https://auth.staging.oauth2.humanode.io'
-  );
-
-  // Set up the common hackathon client.
-  const client = new humanodeIssuer.Client({
-    client_id: 'hackathon-participant',
-    client_secret: 'q4_GkveX47i3M9wYXSkU5CKn3h',
-    redirect_uris: ['http://localhost:3000/callback'],
-    response_types: ['code'],
-    token_endpoint_auth_method: 'client_secret_post'
-  });
-
-  // Save client configuration for later use.
-  res.app.set('client', client);
+  // Get OAuth 2 client.
+  const client = res.app.get('client');
 
   // Set up codeVerifier and save it as a cookie for later use.
   const codeVerifier = openid.generators.codeVerifier(64);
