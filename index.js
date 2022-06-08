@@ -92,6 +92,13 @@ app.get('/callback', async (req, res) => {
   // Get callback params with auth code.
   const params = client.callbackParams(req);
 
+  // If callback params have an error instead of auth code
+  // render error page with description.
+  if ('error' in params) {
+    res.render('error', { errorDescription: params.error_description });
+    return;
+  }
+
   // Exchange auth code for JWT token.
   const tokenSet = await client.callback('http://localhost:3000/callback', params, { state: 'some-state', code_verifier: codeVerifier });
   // Save JWT.
